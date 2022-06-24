@@ -26,8 +26,8 @@ Tag = namedtuple('Tag', ['tag', 'format'])
 
 
 def make_tags(tag):
-    return (Tag(tag='{tag}'.format(tag=tag), format='mobi'),
-            Tag(tag='{tag}-mobi'.format(tag=tag), format='mobi'),
+    return (Tag(tag='{tag}'.format(tag=tag), format='epub'),
+            Tag(tag='{tag}-epub'.format(tag=tag), format='epub'),
             Tag(tag='{tag}-pdf'.format(tag=tag), format='pdf'))
 
 
@@ -47,12 +47,14 @@ class Wallabag:
         async with aiohttp.ClientSession() as session:
             async with session.get(self._url('/oauth/v2/token'), params=params) as resp:
                 if resp.status != 200:
-                    logger.warn("Cannot get token for user {user}", user=user.name)
+                    logger.warn(
+                        "Cannot get token for user {user}", user=user.name)
                     return False
                 data = await resp.json()
                 user.auth_token = data["access_token"]
                 user.refresh_token = data["refresh_token"]
-                user.token_valid = datetime.utcnow() + timedelta(seconds=data["expires_in"])
+                user.token_valid = datetime.utcnow(
+                ) + timedelta(seconds=data["expires_in"])
                 logger.info("Got new token for {}", user.name)
 
                 return True
@@ -67,12 +69,14 @@ class Wallabag:
         async with aiohttp.ClientSession() as session:
             async with session.get(self._url('/oauth/v2/token'), params=params) as resp:
                 if resp.status != 200:
-                    logger.warn("Cannot refresh token for user {user}", user=user.name)
+                    logger.warn(
+                        "Cannot refresh token for user {user}", user=user.name)
                     return False
                 data = await resp.json()
                 user.auth_token = data["access_token"]
                 user.refresh_token = data["refresh_token"]
-                user.token_valid = datetime.utcnow() + timedelta(seconds=data["expires_in"])
+                user.token_valid = datetime.utcnow(
+                ) + timedelta(seconds=data["expires_in"])
 
                 return True
 
@@ -95,7 +99,8 @@ class Wallabag:
                 params = self._api_params(user, {"tags": tag.tag})
                 async with session.get(self._url('/api/entries.json'), params=params) as resp:
                     if resp.status != 200:
-                        logger.warn("Could not get entries of tag {tag} for user {user}", tag=tag.tag, user=user.name)
+                        logger.warn(
+                            "Could not get entries of tag {tag} for user {user}", tag=tag.tag, user=user.name)
                         return
 
                     data = await resp.json()
@@ -123,7 +128,8 @@ class Wallabag:
 
     async def export_article(self, user, article_id, format):
         params = self._api_params(user)
-        url = self._url("/api/entries/{entry}/export.{format}".format(entry=article_id, format=format))
+        url = self._url(
+            "/api/entries/{entry}/export.{format}".format(entry=article_id, format=format))
 
         async with aiohttp.ClientSession() as session:
             async with session.get(url, params=params) as resp:

@@ -30,12 +30,12 @@ class Sender:
         text = 'This email has been automatically sent.'
         msg.attach(MIMEText(text))
 
-        mobi = MIMEApplication(data)
-        encode_base64(mobi)
-        mobi.add_header('Content-Disposition', 'attachment',
+        epub = MIMEApplication(data)
+        encode_base64(epub)
+        epub.add_header('Content-Disposition', 'attachment',
                         filename='article_{id}.{format}'.format(id=article, format=format))
 
-        msg.attach(mobi)
+        msg.attach(epub)
 
         smtp = smtplib.SMTP(host=self.host, port=self.port)
         smtp.starttls()
