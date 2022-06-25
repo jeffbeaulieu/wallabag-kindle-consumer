@@ -24,12 +24,15 @@ class Consumer:
         logger.debug("Fetch entries for user {}", user.name)
         async for entry in self.wallabag.fetch_entries(user):
             logger.info("Schedule job to send entry {}", entry.id)
-            job = Job(article=entry.id, title=entry.title, format=entry.tag.format)
+            job = Job(article=entry.id, title=entry.title,
+                      format=entry.tag.format)
             user.jobs.append(job)
             await self.wallabag.remove_tag(user, entry)
+            await self.wallabag.mark_as_read(user, entry)
 
     async def process_job(self, job, session):
-        logger.info("Process export for job {id} ({format})", id=job.article, format=job.format)
+        logger.info(
+            "Process export for job {id} ({format})", id=job.article, format=job.format)
         data = await self.wallabag.export_article(job.user, job.article, job.format)
         await self.sender.send_mail(job, data)
         session.delete(job)
@@ -56,11 +59,13 @@ class Consumer:
 
             with self.sessionmaker as session:
                 logger.debug("Start consume run")
-                fetches = [self.fetch_jobs(user) for user in session.query(User).filter(User.active == True).all()]
+                fetches = [self.fetch_jobs(user) for user in session.query(
+                    User).filter(User.active == True).all()]
                 await asyncio.gather(*fetches)
                 session.commit()
 
-                jobs = [self.process_job(job, session) for job in session.query(Job).options(joinedload('user'))]
+                jobs = [self.process_job(job, session) for job in session.query(
+                    Job).options(joinedload('user'))]
                 await asyncio.gather(*jobs)
                 session.commit()
 

@@ -126,6 +126,20 @@ class Wallabag:
                 logger.info("Removed tag {tag} from article {article} of user {user}", user=user.name,
                             article=article.id, tag=article.tag.tag)
 
+    async def mark_as_read(self, user, article):
+        params = self._api_params(user, {"archive": 1})
+        url = self._url('/api/entries/{entry}'.format(entry=article.id))
+
+        async with aiohttp.ClientSession() as session:
+            async with session.patch(url, params=params) as resp:
+                if resp.status != 200:
+                    logger.warn("Cannot archive entry {entry} of user {user}", user=user.name,
+                                entry=article.id)
+                    return
+
+                logger.info("Article {article} of user {user} archived", user=user.name,
+                            article=article.id, tag=article.tag.tag)
+
     async def export_article(self, user, article_id, format):
         params = self._api_params(user)
         url = self._url(
