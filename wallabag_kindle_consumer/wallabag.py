@@ -127,8 +127,8 @@ class Wallabag:
                             article=article.id, tag=article.tag.tag)
 
     async def mark_as_read(self, user, article):
-        params = self._api_params(user, {"archive": 1})
-        url = self._url('/api/entries/{entry}'.format(entry=article.id))
+        params = self._api_params(user, {"archive": "1"})
+        url = self._url('/api/entries/{entry}.json'.format(entry=article.id))
 
         async with aiohttp.ClientSession() as session:
             async with session.patch(url, params=params) as resp:
